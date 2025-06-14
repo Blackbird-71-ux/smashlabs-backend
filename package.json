@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "start": "node app-fixed.js",
+    "start": "node app-railway.js",
     "start-minimal": "node app-minimal.js",
     "start-full": "node app.js", 
     "dev": "nodemon app.js",
