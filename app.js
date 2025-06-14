@@ -40,10 +40,15 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // MongoDB connection
 const connectDB = async () => {
     try {
+        if (!process.env.MONGODB_URI) {
+            throw new Error('MONGODB_URI environment variable is not set');
+        }
+        console.log('Attempting to connect to MongoDB...');
         const conn = await mongoose.connect(process.env.MONGODB_URI);
-        console.log(`MongoDB Connected: ${conn.connection.host}`);
+        console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     } catch (error) {
-        console.error('Database connection error:', error);
+        console.error('❌ Database connection error:', error.message);
+        console.error('Available environment variables:', Object.keys(process.env).filter(key => key.includes('MONGO')));
         process.exit(1);
     }
 };
@@ -174,10 +179,18 @@ process.on('SIGINT', () => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+console.log('🔧 Starting SmashLabs Backend Server...');
+console.log('📊 Environment Variables Check:');
+console.log(`- NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+console.log(`- PORT: ${PORT}`);
+console.log(`- MONGODB_URI: ${process.env.MONGODB_URI ? '✅ Set' : '❌ Not Set'}`);
+console.log(`- FRONTEND_URL: ${process.env.FRONTEND_URL || 'Not Set'}`);
+
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 SmashLabs Backend Server running on port ${PORT}`);
     console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🌐 Health check: http://localhost:${PORT}/health`);
+    console.log('✅ Server is ready to accept connections!');
 });
 
 module.exports = app; 
