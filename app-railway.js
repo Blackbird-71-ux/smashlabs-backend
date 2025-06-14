@@ -8,6 +8,27 @@ console.log(`🚂 Railway-specific version starting: ${VERSION}`);
 console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 console.log(`Port: ${process.env.PORT || 5000}`);
 
+// Process signal handling for Railway
+process.on('SIGTERM', () => {
+    console.log('🛑 SIGTERM received, shutting down gracefully');
+    process.exit(0);
+});
+
+process.on('SIGINT', () => {
+    console.log('🛑 SIGINT received, shutting down gracefully');
+    process.exit(0);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('💥 Uncaught Exception:', err);
+    // Don't exit - keep server running
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
+    // Don't exit - keep server running
+});
+
 // Basic middleware
 app.use(express.json());
 
@@ -36,7 +57,8 @@ router.get('/health', (req, res) => {
         message: 'Railway Health Check',
         version: VERSION,
         timestamp: new Date().toISOString(),
-        port: process.env.PORT || 5000
+        port: process.env.PORT || 5000,
+        uptime: process.uptime()
     });
 });
 
@@ -44,10 +66,11 @@ router.get('/health', (req, res) => {
 router.get('/', (req, res) => {
     console.log('🏠 Root endpoint hit');
     res.status(200).json({
-        message: 'SmashLabs API - Railway Version',
+        message: 'SmashLabs API - Railway Version WORKING!',
         version: VERSION,
         timestamp: new Date().toISOString(),
         status: 'RUNNING',
+        uptime: process.uptime(),
         endpoints: ['/', '/health', '/test', '/debug']
     });
 });
@@ -60,7 +83,8 @@ router.get('/test', (req, res) => {
         version: VERSION,
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'development',
-        nodeVersion: process.version
+        nodeVersion: process.version,
+        uptime: process.uptime()
     });
 });
 
@@ -76,7 +100,9 @@ router.get('/debug', (req, res) => {
             platform: process.platform,
             environment: process.env.NODE_ENV || 'development',
             port: process.env.PORT || 5000,
-            uptime: process.uptime()
+            uptime: process.uptime(),
+            memoryUsage: process.memoryUsage(),
+            pid: process.pid
         },
         routes: ['/', '/health', '/test', '/debug']
     });
@@ -120,11 +146,25 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     console.log('   GET /test');
     console.log('   GET /debug');
     console.log('✅ Server ready!');
+    
+    // Keep-alive ping
+    setInterval(() => {
+        console.log(`💓 Server alive - uptime: ${process.uptime()}s`);
+    }, 30000); // Every 30 seconds
 });
 
 server.on('error', (err) => {
     console.error('❌ Server error:', err);
 });
+
+// Graceful shutdown
+const gracefulShutdown = () => {
+    console.log('🛑 Starting graceful shutdown...');
+    server.close(() => {
+        console.log('✅ Server closed');
+        process.exit(0);
+    });
+};
 
 // Export for testing
 module.exports = app; 
