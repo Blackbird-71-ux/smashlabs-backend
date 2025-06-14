@@ -250,7 +250,8 @@ router.post('/', [
         res.status(500).json({
             success: false,
             message: 'Failed to create booking',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            error: error.message,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });

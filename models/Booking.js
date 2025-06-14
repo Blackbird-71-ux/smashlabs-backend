@@ -133,8 +133,9 @@ const bookingSchema = new mongoose.Schema({
 bookingSchema.pre('save', function(next) {
     if (!this.bookingId) {
         const timestamp = Date.now().toString(36);
-        const random = Math.random().toString(36).substr(2, 5);
-        this.bookingId = `SL-${timestamp}-${random}`.toUpperCase();
+        const random1 = Math.random().toString(36).substr(2, 4);
+        const random2 = Math.random().toString(36).substr(2, 4);
+        this.bookingId = `SL-${timestamp}-${random1}${random2}`.toUpperCase();
     }
     next();
 });
