@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "start": "node app-railway.js",
+    "start": "node app-clone-health.js",
     "start-minimal": "node app-minimal.js",
     "start-full": "node app.js", 
     "dev": "nodemon app.js",
