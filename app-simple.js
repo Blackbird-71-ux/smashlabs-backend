@@ -9,12 +9,40 @@ console.log('🔧 Starting SmashLabs Backend Server (Simple Version)...');
 console.log('📊 Environment Variables Check:');
 console.log(`- NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
 console.log(`- PORT: ${process.env.PORT || 5000}`);
+console.log(`- FRONTEND_URL: ${process.env.FRONTEND_URL ? 'Set' : 'Not Set'}`);
 
-// Basic middleware
+// Clean and validate FRONTEND_URL
+const cleanFrontendUrl = () => {
+    if (!process.env.FRONTEND_URL) {
+        return '*';
+    }
+    
+    // Remove any line breaks, spaces, or invalid characters
+    const cleaned = process.env.FRONTEND_URL
+        .toString()
+        .trim()
+        .replace(/[\r\n\t]/g, '') // Remove line breaks and tabs
+        .replace(/\s+/g, ''); // Remove spaces
+    
+    // Validate URL format
+    if (cleaned && (cleaned.startsWith('http://') || cleaned.startsWith('https://'))) {
+        console.log(`✅ Using cleaned FRONTEND_URL: ${cleaned}`);
+        return cleaned;
+    }
+    
+    console.log(`⚠️ Invalid FRONTEND_URL format, using wildcard: ${process.env.FRONTEND_URL}`);
+    return '*';
+};
+
+const corsOrigin = cleanFrontendUrl();
+
+// Basic middleware with fixed CORS
 app.use(helmet());
 app.use(cors({
-    origin: process.env.FRONTEND_URL || '*',
-    credentials: true
+    origin: corsOrigin,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -35,7 +63,8 @@ app.get('/health', (req, res) => {
             timestamp: new Date().toISOString(),
             message: 'SmashLabs Backend is running (simple version)',
             environment: process.env.NODE_ENV || 'development',
-            port: process.env.PORT || 5000
+            port: process.env.PORT || 5000,
+            corsOrigin: corsOrigin
         };
         
         console.log('Health check response:', response);
@@ -54,7 +83,8 @@ app.get('/', (req, res) => {
             status: 'Running',
             timestamp: new Date().toISOString(),
             availableEndpoints: ['/health', '/test', '/debug'],
-            environment: process.env.NODE_ENV || 'development'
+            environment: process.env.NODE_ENV || 'development',
+            corsOrigin: corsOrigin
         };
         
         console.log('Root endpoint response:', response);
@@ -73,7 +103,8 @@ app.get('/test', (req, res) => {
             env: process.env.NODE_ENV || 'development',
             port: process.env.PORT || 5000,
             timestamp: new Date().toISOString(),
-            nodeVersion: process.version
+            nodeVersion: process.version,
+            corsOrigin: corsOrigin
         };
         
         console.log('Test endpoint response:', response);
@@ -103,7 +134,9 @@ app.get('/debug', (req, res) => {
             uptime: process.uptime(),
             environmentVariables: {
                 NODE_ENV: process.env.NODE_ENV || 'development',
-                PORT: process.env.PORT || 5000
+                PORT: process.env.PORT || 5000,
+                FRONTEND_URL: process.env.FRONTEND_URL ? 'Set' : 'Not Set',
+                corsOrigin: corsOrigin
             }
         };
         
@@ -143,6 +176,7 @@ const startServer = () => {
         const server = app.listen(PORT, '0.0.0.0', () => {
             console.log(`🚀 SmashLabs Backend Server (Simple) running on port ${PORT}`);
             console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+            console.log(`🌐 CORS Origin: ${corsOrigin}`);
             console.log(`🌐 Health check: http://localhost:${PORT}/health`);
             console.log(`🌐 Root: http://localhost:${PORT}/`);
             console.log(`🌐 Test: http://localhost:${PORT}/test`);
