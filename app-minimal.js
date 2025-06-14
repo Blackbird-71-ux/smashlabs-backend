@@ -73,6 +73,27 @@ app.get('/test', (req, res) => {
     });
 });
 
+// Debug endpoint to show all routes and system info
+app.get('/debug', (req, res) => {
+    res.json({
+        message: 'Debug endpoint working!',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        port: process.env.PORT || 5000,
+        mongoUri: process.env.MONGODB_URI ? 'Set' : 'Not Set',
+        mongoStatus: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
+        availableRoutes: [
+            'GET /',
+            'GET /health', 
+            'GET /test',
+            'GET /debug'
+        ],
+        nodeVersion: process.version,
+        platform: process.platform,
+        uptime: process.uptime()
+    });
+});
+
 const PORT = process.env.PORT || 5000;
 
 // Start server and connect to database
