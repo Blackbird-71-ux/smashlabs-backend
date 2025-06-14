@@ -109,7 +109,6 @@ const bookingSchema = new mongoose.Schema({
     // Booking Reference
     bookingId: {
         type: String,
-        unique: true,
         required: true
     },
     
@@ -182,7 +181,7 @@ bookingSchema.methods.cancel = function(reason) {
 bookingSchema.index({ customerEmail: 1 });
 bookingSchema.index({ preferredDate: 1 });
 bookingSchema.index({ status: 1 });
-bookingSchema.index({ bookingId: 1 });
+bookingSchema.index({ bookingId: 1, unique: true });
 bookingSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Booking', bookingSchema); 
