@@ -1,0 +1,39 @@
+{
+  "name": "smashlabs-backend",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup": "npm install && echo 'Backend setup complete! Create a .env file with your configuration.'",
+    "db:status": "node -e \"const db = require('./config/database'); db.connect().then(() => console.log('Database connection successful')).catch(console.error)\"",
+    "build": "echo 'No build step required for Node.js'",
+    "railway:start": "node app.js"
+  },
+  "keywords": ["smashlabs", "stress-relief", "backend", "api"],
+  "author": "SmashLabs Team",
+  "license": "ISC",
+  "description": "SmashLabs Backend API - Stress relief booking and management system",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.5.0",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.15.2",
+    "nodemailer": "^7.0.3",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "nodemon": "^3.1.10"
+  }
+}
