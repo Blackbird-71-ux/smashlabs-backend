@@ -109,7 +109,8 @@ const bookingSchema = new mongoose.Schema({
     // Booking Reference
     bookingId: {
         type: String,
-        required: true
+        required: false,
+        unique: true
     },
     
     // Internal Notes
