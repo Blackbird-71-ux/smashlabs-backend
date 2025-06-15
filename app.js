@@ -14,6 +14,7 @@ app.use(helmet());
 // CORS configuration
 const allowedOrigins = [
     'https://smashlabs.in',
+    'https://www.smashlabs.in',
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:3002',
