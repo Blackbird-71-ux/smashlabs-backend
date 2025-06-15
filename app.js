@@ -91,6 +91,7 @@ app.use('/api/bookings', require('./routes/bookings'));
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/newsletter', require('./routes/newsletter'));
 app.use('/api/packages', require('./routes/packages'));
+app.use('/api/registrations', require('./routes/registrations'));
 app.use('/api/admin', require('./routes/admin'));
 
 // Root endpoint
@@ -105,6 +106,7 @@ app.get('/', (req, res) => {
             contact: '/api/contact',
             newsletter: '/api/newsletter',
             packages: '/api/packages',
+            registrations: '/api/registrations',
             admin: '/api/admin'
         }
     });
@@ -121,6 +123,7 @@ app.use('*', (req, res) => {
             '/api/contact',
             '/api/newsletter',
             '/api/packages',
+            '/api/registrations',
             '/api/admin'
         ]
     });
