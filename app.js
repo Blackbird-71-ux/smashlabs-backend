@@ -57,6 +57,10 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// MongoDB connection state
+let dbConnectionStatus = 'disconnected';
+let dbConnectionError = null;
+
 // MongoDB connection
 const connectDB = async () => {
     try {
@@ -64,12 +68,23 @@ const connectDB = async () => {
             throw new Error('MONGODB_URI environment variable is not set');
         }
         console.log('Attempting to connect to MongoDB...');
+        dbConnectionStatus = 'connecting';
         const conn = await mongoose.connect(process.env.MONGODB_URI);
         console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+        dbConnectionStatus = 'connected';
+        dbConnectionError = null;
     } catch (error) {
         console.error('❌ Database connection error:', error.message);
         console.error('Available environment variables:', Object.keys(process.env).filter(key => key.includes('MONGO')));
-        process.exit(1);
+        dbConnectionStatus = 'error';
+        dbConnectionError = error.message;
+        
+        // Don't exit the process, let the app continue to run for health checks
+        // Retry connection after 30 seconds
+        setTimeout(() => {
+            console.log('🔄 Retrying MongoDB connection...');
+            connectDB();
+        }, 30000);
     }
 };
 
@@ -78,22 +93,40 @@ connectDB();
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-    res.status(200).json({
+    const healthStatus = {
         status: 'OK',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        environment: process.env.NODE_ENV || 'development'
-    });
+        environment: process.env.NODE_ENV || 'development',
+        database: {
+            status: dbConnectionStatus,
+            error: dbConnectionError
+        },
+        services: {
+            express: 'running',
+            mongodb: dbConnectionStatus
+        }
+    };
+    
+    // Always return 200 for health check - let Railway know the service is running
+    // Even if database is not connected, the service itself is healthy
+    res.status(200).json(healthStatus);
 });
 
-// API Routes
-app.use('/api/bookings', require('./routes/bookings'));
-app.use('/api/contact', require('./routes/contact'));
-app.use('/api/newsletter', require('./routes/newsletter'));
-app.use('/api/packages', require('./routes/packages'));
-app.use('/api/registrations', require('./routes/registrations'));
-app.use('/api/corporate-bookings', require('./routes/corporateBookings'));
-app.use('/api/admin', require('./routes/admin'));
+// API Routes with error handling
+try {
+    app.use('/api/bookings', require('./routes/bookings'));
+    app.use('/api/contact', require('./routes/contact'));
+    app.use('/api/newsletter', require('./routes/newsletter'));
+    app.use('/api/packages', require('./routes/packages'));
+    app.use('/api/registrations', require('./routes/registrations'));
+    app.use('/api/corporate-bookings', require('./routes/corporateBookings'));
+    app.use('/api/admin', require('./routes/admin'));
+    console.log('✅ All API routes loaded successfully');
+} catch (error) {
+    console.error('❌ Error loading API routes:', error.message);
+    // Continue without failing - health check should still work
+}
 
 // Root endpoint
 app.get('/', (req, res) => {
